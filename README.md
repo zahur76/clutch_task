@@ -4,9 +4,9 @@
 
 * install scrapy ``` pip install scrapy ```
 
-* start project ``` pip install clutch .```
+* start project ``` scrapy startproject clutch .```
 
-* rotate proxies with  ``` pip install  scrapy-rotating-proxies ```
+* rotate proxies with  ``` pip install scrapy-rotating-proxies ```
 
     - update settings file so as to link to proxy list (list.txt)
 
