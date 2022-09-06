@@ -1,5 +1,8 @@
+from asyncio import StreamReaderProtocol
 from math import comb
+import re
 from time import time
+from turtle import pos
 import scrapy
 import json
 import os
@@ -118,7 +121,26 @@ class QuotesSpider(scrapy.Spider):
             timezone =  None
 
         # address
-        address = response.css('li.quick-menu-details span::text').get()
+
+        street_address = response.css('div.street-address::text').get()       
+
+        locality = response.css('span.locality::text').get()
+
+        region = response.css('span.region::text').get()
+
+        postal_code = response.css('span.postal-code::text').get()
+
+        country = response.css('div.country-name::text').get()
+
+        
+
+        combined_address = [street_address, locality, region, postal_code, country]
+
+        corrected_address = ""
+
+        for address in combined_address:
+            if address:
+                corrected_address += f'{address}, '
 
         # Phone Number
         try:
@@ -126,10 +148,15 @@ class QuotesSpider(scrapy.Spider):
         except:
             phone_number = response.css('li.quick-menu-details a::text').get()
 
+
+        # focus section
+
+        service_lines = response.css('div.ability_list div.legend-item span::text').extract()
+
         company_dict.append({"Company": company_name,
                                 "Company_Url": company_url,
                                 "Company_image": company_image,
-                                "Address": address,
+                                "Address":corrected_address[:-2],
                                 "Phone_number": phone_number,
                                 "Description": combined_desciption,
                                 "Verification Status": verification_status, 
@@ -140,9 +167,10 @@ class QuotesSpider(scrapy.Spider):
                                 "Employees": company_info[2].strip(), 
                                 "Founded": company_info[3].strip(), 
                                 "Languages": languages,
-                                "Timezone": timezone                                                    
+                                "Timezone": timezone,
+                                "Services_line": service_lines,                                                   
                                 })
       
 
         if len(company_dict) == 50:
-            print(company_dict[1])
+            print(company_dict[0])
