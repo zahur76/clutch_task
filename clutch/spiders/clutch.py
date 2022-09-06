@@ -77,6 +77,9 @@ class QuotesSpider(scrapy.Spider):
         # company name
         company_name = response.css('h1.header-company--title a::text').get().replace("\n","").strip()
 
+        # company image
+        company_image = response.css('img.header-company--logotype::attr(src)').get()
+
         # company url
         company_url = response.css("h1.header-company--title a::attr('href')").get()
 
@@ -114,9 +117,21 @@ class QuotesSpider(scrapy.Spider):
         except:
             timezone =  None
 
+        # address
+        address = response.css('li.quick-menu-details span::text').get()
+
+        # Phone Number
+        try:
+            phone_number = response.css('li.quick-menu-details a::text').get().replace(".", "").strip()
+        except:
+            phone_number = response.css('li.quick-menu-details a::text').get()
+
         company_dict.append({"Company": company_name,
-                                "Compnay_Url": company_url,
-                                "Decription": combined_desciption,
+                                "Company_Url": company_url,
+                                "Company_image": company_image,
+                                "Address": address,
+                                "Phone_number": phone_number,
+                                "Description": combined_desciption,
                                 "Verification Status": verification_status, 
                                 "rating": rating, 
                                 "review_count": review_count,
@@ -130,4 +145,4 @@ class QuotesSpider(scrapy.Spider):
       
 
         if len(company_dict) == 50:
-            print(company_dict)
+            print(company_dict[1])
