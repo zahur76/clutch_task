@@ -1,4 +1,5 @@
 from asyncio import StreamReaderProtocol
+from code import InteractiveInterpreter
 from math import comb
 import re
 from time import time
@@ -77,7 +78,7 @@ class QuotesSpider(scrapy.Spider):
             Extract company information from details page
         """
 
-        # company name
+        #company name
         company_name = response.css('h1.header-company--title a::text').get().replace("\n","").strip()
 
         # company image
@@ -132,7 +133,6 @@ class QuotesSpider(scrapy.Spider):
 
         country = response.css('div.country-name::text').get()
 
-        
 
         combined_address = [street_address, locality, region, postal_code, country]
 
@@ -151,7 +151,35 @@ class QuotesSpider(scrapy.Spider):
 
         # focus section
 
-        service_lines = response.css('div.ability_list div.legend-item span::text').extract()
+        focus_data_one = ""
+        try: 
+            # service_lines = response.xpath("//*[contains(text(), 'Service lines')]/../div[3]/div/span/text()").extract()
+            data_one = response.xpath("//*[contains(text(), 'Service lines')]/../div[2]/div/div/@data-content").extract()
+            data_two = response.xpath("//*[contains(text(), 'Service lines')]/../div[2]/div/div/text()").extract()
+        except:
+            focus_data = None
+
+        for i in range(len(data_one)):
+            focus_data_one += f'{data_one[i].replace("<b>", "").replace("</b>", "")}: {data_two[i]}, '
+        
+
+        try:
+            client_focus = response.xpath("//*[contains(text(), 'Client focus')]/../div[3]/div/span/text()").extract()
+        except:
+            client_focus = None
+
+        try:
+            industry_focus = response.xpath("//*[contains(text(), 'Industry focus')]/../div[3]/div/span/text()").extract()
+        except:
+            industry_focus = None
+
+        try:
+            event_marketing_focus = response.xpath("//*[contains(text(), 'Event Marketing Focus')]/../div[3]/div/span/text()").extract()
+        except:
+            event_marketing_focus = None
+
+        print(event_marketing_focus)
+
 
         company_dict.append({"Company": company_name,
                                 "Company_Url": company_url,
@@ -168,9 +196,10 @@ class QuotesSpider(scrapy.Spider):
                                 "Founded": company_info[3].strip(), 
                                 "Languages": languages,
                                 "Timezone": timezone,
-                                "Services_line": service_lines,                                                   
+                                "Services_line": focus_data_one[:-2],
+                                "Client_focus": client_focus,                                                 
                                 })
       
 
         if len(company_dict) == 50:
-            print(company_dict[0])
+            print(company_dict[1])
