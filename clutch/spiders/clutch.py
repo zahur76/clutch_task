@@ -3,18 +3,20 @@ import json
 import os
 import requests
 
-start_url = {'url': 'https://nigeriapropertycentre.com/', 'category': False, 'subcategory': False, 'details': False}
+start_url = {'url': 'https://clutch.co/agencies/event', 'category': False, 'subcategory': False, 'details': False}
 
-max_query = 2
-query_list = []
+# max_query = 2
+# query_list = []
 
-property_list = []
+# property_list = []
 
-links_required = []
-count = []
+# links_required = []
+# count = []
+
+page_links = []
 
 class QuotesSpider(scrapy.Spider):
-    name = "property"
+    name = "clutch"
 
     def start_requests(self):
         url = start_url
@@ -26,8 +28,27 @@ class QuotesSpider(scrapy.Spider):
             yield scrapy.Request(url=url['url'], callback=self.parse_three)
 
     def parse_one(self, response):
-        link = response.css('li a[href="/for-sale"]::attr("href")').get()
-        new_link = response.urljoin(link)
-        yield scrapy.Request(url=new_link, callback=self.parse_two)  
+        
+        try:
+            next = response.css("li.page-item.next").get()
+        except:
+            next = None
+
+        if next:
+            links = response.css("a.company_logotype::attr('href')").extract()
+            for link in links:
+                page_links.append(link)
+            # print(page_links)
+            next_page = response.css("li.page-item.next a.page-link::attr('href')").extract()[0]
+            new_link = response.urljoin(next_page)
+            print(new_link)
+            yield scrapy.Request(url=new_link, callback=self.parse_one, dont_filter=True)
+        else:
+            links = response.css("a.company_logotype::attr('href')").extract()
+            for link in links:
+                page_links.append(link)
+            # print(page_links)
+            print(len(page_links))
+
 
     
