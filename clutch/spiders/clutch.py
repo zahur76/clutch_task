@@ -2,6 +2,8 @@ import scrapy
 
 import json
 
+import os
+
 
 start_url = {'url': 'https://clutch.co/agencies/event', 'category': False, 'subcategory': False, 'details': False}
 
@@ -272,13 +274,13 @@ class QuotesSpider(scrapy.Spider):
                                 })
       
 
-        # if len(company_dict) == 50:
-        #     json_data = json.dumps(movie_list, ensure_ascii=False)
-        #     json_data = json_data.replace('\\"', '')
-        #     filename = 'imdb_250'
-        #     if not os.path.exists('data'):
-        #         os.makedirs('data')
+        if len(company_dict) == 50:
+            json_data = json.dumps(company_dict, ensure_ascii=False)
+            json_data = json_data.replace('\\"', '')
+            filename = 'clutch'
+            if not os.path.exists('data'):
+                os.makedirs('data')
             
 
-        #     with open(f'data/{filename}.json', 'w', encoding="utf-8") as out:
-        #         out.write(json_data) 
+            with open(f'data/{filename}.json', 'w', encoding="utf-8") as out:
+                out.write(json_data) 
