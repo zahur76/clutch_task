@@ -1,13 +1,7 @@
-from asyncio import StreamReaderProtocol
-from code import InteractiveInterpreter
-from math import comb
-import re
 from time import time
-from turtle import pos
+
 import scrapy
-import json
-import os
-import requests
+
 
 start_url = {'url': 'https://clutch.co/agencies/event', 'category': False, 'subcategory': False, 'details': False}
 
@@ -148,38 +142,39 @@ class QuotesSpider(scrapy.Spider):
         except:
             phone_number = response.css('li.quick-menu-details a::text').get()
 
-
         # focus section
 
-        focus_data_one = ""
-        try: 
-            # service_lines = response.xpath("//*[contains(text(), 'Service lines')]/../div[3]/div/span/text()").extract()
-            data_one = response.xpath("//*[contains(text(), 'Service lines')]/../div[2]/div/div/@data-content").extract()
-            data_two = response.xpath("//*[contains(text(), 'Service lines')]/../div[2]/div/div/text()").extract()
-        except:
-            focus_data = None
+        focust_list = response.css('div.graph-title::text').extract()
+        focus_dict = {company_name: []}
 
-        for i in range(len(data_one)):
-            focus_data_one += f'{data_one[i].replace("<b>", "").replace("</b>", "")}: {data_two[i]}, '
-        
+        for item in focust_list:
+            data_ = ''
+            try: 
+                data_one = response.xpath(f"//*[contains(text(), '{item}')]/../div[2]/div/div/@data-content").extract()
+                percentage_list = []
+                item_list = []
+                for item__ in data_one:
+                    if '<i>' not in item__:
+                        item_ = item__.replace('<b>', '').replace('</b>', '')
+                        item_list.append(item_)
+                        percent_ = response.css(f"div[data-content='{item__}']::text").extract_first()
+                        if percent_:
+                            percentage_list.append(percent_)
+                        else:
+                            percentage_list.append(response.css(f"div[data-content='{item__}'] > span::text").extract_first())
+                    else:
+                        item_ = item__.split('</i>')
+                        item_list.append(item_[1].replace('<b>', '').replace('</b>', ''))
+                        percent_value = item_[0].replace('<i>', '')                        
+                        percentage_list.append(percent_value)
+                        
 
-        try:
-            client_focus = response.xpath("//*[contains(text(), 'Client focus')]/../div[3]/div/span/text()").extract()
-        except:
-            client_focus = None
-
-        try:
-            industry_focus = response.xpath("//*[contains(text(), 'Industry focus')]/../div[3]/div/span/text()").extract()
-        except:
-            industry_focus = None
-
-        try:
-            event_marketing_focus = response.xpath("//*[contains(text(), 'Event Marketing Focus')]/../div[3]/div/span/text()").extract()
-        except:
-            event_marketing_focus = None
-
-        print(event_marketing_focus)
-
+                for j in range(len(data_one)):
+                    data_ += f'{item_list[j]}: {percentage_list[j]}, '
+                data_ = data_[:-2]
+                focus_dict[company_name].append({item: data_})
+            except Exception as e:
+                data_ = None
 
         company_dict.append({"Company": company_name,
                                 "Company_Url": company_url,
@@ -196,10 +191,9 @@ class QuotesSpider(scrapy.Spider):
                                 "Founded": company_info[3].strip(), 
                                 "Languages": languages,
                                 "Timezone": timezone,
-                                "Services_line": focus_data_one[:-2],
-                                "Client_focus": client_focus,                                                 
+                                "focus": focus_dict[company_name]                                                     
                                 })
       
 
         if len(company_dict) == 50:
-            print(company_dict[1])
+            print(company_dict)
