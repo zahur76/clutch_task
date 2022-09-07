@@ -1,7 +1,6 @@
-from dataclasses import replace
-from time import time
-
 import scrapy
+
+import json
 
 
 start_url = {'url': 'https://clutch.co/agencies/event', 'category': False, 'subcategory': False, 'details': False}
@@ -62,7 +61,7 @@ class QuotesSpider(scrapy.Spider):
                 for link in links:
                     page_links.append(link)
         else:
-            for link in page_links:
+            for link in page_links:                
                 send_link = response.urljoin(link)
                 yield scrapy.Request(url=send_link, callback=self.parse_two, dont_filter=True)
 
@@ -72,7 +71,7 @@ class QuotesSpider(scrapy.Spider):
         """ 
             Extract company information from details page
         """
-
+        
         #company name
         company_name = response.css('h1.header-company--title a::text').get().replace("\n","").strip()
 
@@ -188,6 +187,70 @@ class QuotesSpider(scrapy.Spider):
             key_clients = key_clients[0].replace("\x80\x99s", "").replace("â\x80\x9c", "").replace(".â\x80\x9d", "").replace("\xa0", "")
 
 
+        # Review Section
+
+        review_list = []
+
+        reviews = response.css('div.review_data--container')
+
+        for review in reviews:
+            
+            project = review.css('a.inner_url::text').extract_first()
+            
+            project_category = review.css('div.abs-aligned div.field-item span::text').extract()[0]
+
+            project_size = review.css('div.field-name-cost div.field-item::text').extract()[0]
+
+            project_length = review.css('div.field-name-project-length div.field-item::text').extract_first()
+
+            project_description = review.css('div.field-name-proj-description div.field-item p::text').extract()[0]
+
+            the_review = review.css('div.field-name-client-quote div.field-item p::text').extract_first()
+
+            review_date = review.css('div.review-col-reviewtxt h5.h5_title.date::text').extract()[0]
+
+            quality = review.css('div.field-name-quality div.field-item::text').extract()[0]
+
+            schedule = review.css('div.field-name-schedule div.field-item::text').extract()[0]
+
+            cost = review.css('div.field-name-cost-feedback div.field-item::text').extract()[0]
+
+            willing_to_refer = review.css('div.field-name-willingness-refer div.field-item::text').extract()[0]
+
+            the_reviewer = review.css('div.group-reviewer div.field-name-title::text').extract_first().replace("\n", "").strip()
+
+            reviewer_name = review.css('div.field-name-full-name-display div.field-item::text').extract_first()
+
+            reviewer_industry = review.css('div.field-name-user-industry span.field-item::text').extract()[0]
+
+            reviewer_client_size = review.css('div.field-name-company-size div.field-item::text').extract_first()
+
+            reviewer_location = review.css('div.field-name-location span.field-item::text').extract_first()
+
+            reviewer_review_type = review.css('div.field-name-review-type div.field-item::text').extract()[0].replace("\n", "").strip()
+            
+            reviewer_verirfied = review.css('div.field-name-verified div.field-item::text').extract()[0]
+            
+            review_list.append({"Project": project, 
+                                    "Project Category": project_category, 
+                                    "Project Size": project_size,
+                                    "Project Length": project_length,
+                                    "Project Description": project_description,
+                                    "Project Review": the_review,
+                                    "Review Date": review_date,
+                                    "Quality": quality,
+                                    "Schedule": schedule,
+                                    "Cost": cost,
+                                    "Willing to Refer": willing_to_refer,
+                                    "The Reviewer": the_reviewer,
+                                    "Reviewer Name": reviewer_name,
+                                    "Reviewer Industry": reviewer_industry,
+                                    "Reviewer Client Size": reviewer_client_size,
+                                    "Reviewer Location": reviewer_location,
+                                    "Reviewer Review Type": reviewer_review_type,
+                                    "Reviewer Verified": reviewer_verirfied})
+
+
         company_dict.append({"Company": company_name,
                                 "Company_Url": company_url,
                                 "Company_image": company_image,
@@ -204,9 +267,18 @@ class QuotesSpider(scrapy.Spider):
                                 "Languages": languages,
                                 "Timezone": timezone,
                                 "Focus": focus_dict[company_name],
-                                "Portfolio": key_clients                                                    
+                                "Portfolio": key_clients,
+                                "Review": review_list                                                
                                 })
       
 
-        if len(company_dict) == 50:
-            print(company_dict[0])
+        # if len(company_dict) == 50:
+        #     json_data = json.dumps(movie_list, ensure_ascii=False)
+        #     json_data = json_data.replace('\\"', '')
+        #     filename = 'imdb_250'
+        #     if not os.path.exists('data'):
+        #         os.makedirs('data')
+            
+
+        #     with open(f'data/{filename}.json', 'w', encoding="utf-8") as out:
+        #         out.write(json_data) 
