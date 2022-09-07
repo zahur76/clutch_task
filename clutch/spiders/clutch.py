@@ -1,3 +1,4 @@
+from dataclasses import replace
 from time import time
 
 import scrapy
@@ -175,6 +176,17 @@ class QuotesSpider(scrapy.Spider):
                 focus_dict[company_name].append({item: data_})
             except Exception as e:
                 data_ = None
+        
+
+        # Portfolio section
+    
+        key_clients = response.css('div.field-name-clients div p::text').extract()
+
+        if not key_clients:
+            key_clients = None
+        else:
+            key_clients = key_clients[0].replace("\x80\x99s", "").replace("â\x80\x9c", "").replace(".â\x80\x9d", "").replace("\xa0", "")
+
 
         company_dict.append({"Company": company_name,
                                 "Company_Url": company_url,
@@ -191,9 +203,10 @@ class QuotesSpider(scrapy.Spider):
                                 "Founded": company_info[3].strip(), 
                                 "Languages": languages,
                                 "Timezone": timezone,
-                                "focus": focus_dict[company_name]                                                     
+                                "Focus": focus_dict[company_name],
+                                "Portfolio": key_clients                                                    
                                 })
       
 
         if len(company_dict) == 50:
-            print(company_dict)
+            print(company_dict[0])
