@@ -1,3 +1,5 @@
+from ast import excepthandler
+from dataclasses import field
 from http.client import ResponseNotReady
 import scrapy
 
@@ -45,14 +47,14 @@ class QuotesSpider(scrapy.Spider):
         except:
             next = None
         
-        if next:
-            links = response.css("a.company_logotype::attr('href')").extract()
-            for link in links:
-                page_links.append(link)
-            next_page = response.css("li.page-item.next a.page-link::attr('href')").extract()[0]
-            new_link = response.urljoin(next_page)
-            yield scrapy.Request(url=new_link, callback=self.parse_one)
-        else:
+        # if next:
+        #     links = response.css("a.company_logotype::attr('href')").extract()
+        #     for link in links:
+        #         page_links.append(link)
+        #     next_page = response.css("li.page-item.next a.page-link::attr('href')").extract()[0]
+        #     new_link = response.urljoin(next_page)
+        #     yield scrapy.Request(url=new_link, callback=self.parse_one)
+        # else:
             links = response.css("a.company_logotype::attr('href')").extract()
             for link in links:
                 if link not in page_links:
@@ -65,7 +67,6 @@ class QuotesSpider(scrapy.Spider):
         # for link in page_links:          
         #     send_link = response.urljoin(link)
         #     yield scrapy.Request(url=send_link, callback=self.parse_two)
-
         
     def parse_two(self, response):
 
@@ -84,11 +85,83 @@ class QuotesSpider(scrapy.Spider):
         # company url
         company_url = response.css("h1.header-company--title a::attr('href')").get()
 
-        # company verification status
+        company verification status
         try:
-            verification_status = response.css('div.verification-status-wrapper::text').extract()[1].replace("\n","").strip()
+            verification_status = response.css('div.verification-status-wrapper::text').extract().replace("\n","").strip()
         except:
             verification_status = None
+
+        verfication_business_entity = []
+
+        try:
+            field_name = response.css('div.verification-wrapper-inside div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_name = None
+       
+        try:
+            field_name_status = response.css('div.verification-wrapper-inside div.field-name-status div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_name_status = None
+      
+        try:
+            field_name_juris_information = response.css('div.verification-wrapper-inside div.field-name-juris-formation div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_name_juris_information = None
+
+        try:
+            field_name_id = response.css('div.verification-wrapper-inside div.field-name-id div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_name_id = None
+
+        
+        try:
+            field_date_of_formation = response.css('div.verification-wrapper-inside div.field-name-date-formation div.field-item span.date-display-single::text').extract()[0].replace("\n","").strip()
+        except:
+            field_date_of_formation = None
+        try:
+            field_source = response.css('div.verification-wrapper-inside2 div.field-name-source div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_source = None
+        
+        try:
+            field_last_updated = response.css('div.verification-wrapper-inside2 div.field-name-last-updated div.field-item span.date-display-single::text').extract()[0].replace("\n","").strip()
+        except:
+            field_last_updated = None
+
+        try:
+            field_bankrupcy = response.css('div.verification-wrapper-inside div.field-name-bankruptcy div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_bankrupcy = None
+
+        try:
+            field_tax_lien_filings = response.css('div.verification-wrapper-inside div.field-name-lien-filings div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_tax_lien_filings = None
+
+        try:
+            field_judgement_filings = response.css('div.verification-wrapper-inside div.field-name-judgement-filings div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_judgement_filings = None
+        
+        try:
+            field_collection_count = response.css('div.verification-wrapper-inside div.field-name-collections-count div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_collection_count = None
+        
+        try:
+            field_payment_source = response.css('div.verification-wrapper-inside2 div.field-name-source div.field-item::text').extract()[0].replace("\n","").strip()
+        except:
+            field_payment_source = None
+        
+        try:
+            field_credit_report = response.css("div.verification-wrapper-inside2 div.field-name-source-link div.field-item a::attr('href')").extract()[0].replace("\n","").strip()
+        except:
+            field_credit_report  = None
+
+        try:
+            field_payment_last_updated = response.css('div.verification-wrapper-inside2 div.field-name-last-updated div.field-item span.date-display-single::text').extract()[0].replace("\n","").strip()
+        except:
+            field_payment_last_updated = None
 
         # company rating
         try:
@@ -271,7 +344,11 @@ class QuotesSpider(scrapy.Spider):
                                     "Reviewer Review Type": reviewer_review_type,
                                     "Reviewer Verified": reviewer_verirfied})
 
-        
+        try:
+            review_last_updated = response.css('div.verification-wrapper-inside2 div.field-item::text').extract().replace("\n","").strip()
+        except:
+            review_last_updated = None
+
         company_dict.append({"Company": company_name,
                                 "Company Detail Url": company_detail_url,
                                 "Company Url": company_url,
@@ -279,9 +356,10 @@ class QuotesSpider(scrapy.Spider):
                                 "Headquarters Address":corrected_address[:-2],
                                 "Phone number": phone_number,
                                 "Description": combined_desciption,
-                                "Verification Status": verification_status, 
-                                "rating": rating, 
+                                "Verification Status": verification_status,   
+                                "Average rating": rating, 
                                 "review count": review_count,
+                                "Review Last Updated": review_last_updated,
                                 "Min Project Size": company_info[0], 
                                 "Avg hour rate": company_info[1].strip(), 
                                 "Employees": company_info[2].strip(), 
@@ -291,17 +369,31 @@ class QuotesSpider(scrapy.Spider):
                                 "Focus": focus_dict[company_name],
                                 "Key Clients": key_clients,
                                 "Project Portfolio": project_portfolio_,
-                                "Reviews": review_list                                                
+                                "Reviews": review_list,
+                                "Business Entity: Name": field_name,
+                                "Business Entity: Status": field_name_status,
+                                "Business Entity: Jurisdiction of formation": field_name_juris_information,
+                                "Business Entity: ID": field_name_id,
+                                "Business Entity: Date Of Formation": field_date_of_formation,
+                                "Business Entity: Source": field_source,
+                                "Business Entity: Last Updated": field_last_updated,
+                                "Payment & Legal: Filings: Bankrupcy": field_bankrupcy,
+                                "Payment & Legal: Filings: Tax Lien fillings": field_tax_lien_filings, 
+                                "Payment & Legal: Judgement fillings": field_judgement_filings,
+                                "Payment & Legal: Collections Count": field_collection_count,
+                                "Payment & Legal: Sourcet": field_payment_source,
+                                "Payment & Legal: Credit Report Url": field_credit_report,
+                                "Payment & Legal: Last Updated": field_payment_last_updated,                                               
                                 })
 
-        print(len(company_dict))
-        if len(company_dict) == 4001:
-            json_data = json.dumps(company_dict, ensure_ascii=False)
-            json_data = json_data.replace('\\"', '')
-            filename = 'clutch'
-            if not os.path.exists('data'):
-                os.makedirs('data')
+        # print(len(company_dict))
+        # if len(company_dict) == 4001:
+        #     json_data = json.dumps(company_dict, ensure_ascii=False)
+        #     json_data = json_data.replace('\\"', '')
+        #     filename = 'clutch'
+        #     if not os.path.exists('data'):
+        #         os.makedirs('data')
             
 
-            with open(f'data/{filename}.json', 'w', encoding="utf-8") as out:
-                out.write(json_data) 
+        #     with open(f'data/{filename}.json', 'w', encoding="utf-8") as out:
+        #         out.write(json_data) 
