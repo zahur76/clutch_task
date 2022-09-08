@@ -1,6 +1,3 @@
-from ast import excepthandler
-from dataclasses import field
-from http.client import ResponseNotReady
 import scrapy
 
 import json
@@ -47,14 +44,14 @@ class QuotesSpider(scrapy.Spider):
         except:
             next = None
         
-        # if next:
-        #     links = response.css("a.company_logotype::attr('href')").extract()
-        #     for link in links:
-        #         page_links.append(link)
-        #     next_page = response.css("li.page-item.next a.page-link::attr('href')").extract()[0]
-        #     new_link = response.urljoin(next_page)
-        #     yield scrapy.Request(url=new_link, callback=self.parse_one)
-        # else:
+        if next:
+            links = response.css("a.company_logotype::attr('href')").extract()
+            for link in links:
+                page_links.append(link)
+            next_page = response.css("li.page-item.next a.page-link::attr('href')").extract()[0]
+            new_link = response.urljoin(next_page)
+            yield scrapy.Request(url=new_link, callback=self.parse_one)
+        else:
             links = response.css("a.company_logotype::attr('href')").extract()
             for link in links:
                 if link not in page_links:
@@ -85,13 +82,11 @@ class QuotesSpider(scrapy.Spider):
         # company url
         company_url = response.css("h1.header-company--title a::attr('href')").get()
 
-        company verification status
+        # company verification status
         try:
             verification_status = response.css('div.verification-status-wrapper::text').extract().replace("\n","").strip()
         except:
             verification_status = None
-
-        verfication_business_entity = []
 
         try:
             field_name = response.css('div.verification-wrapper-inside div.field-item::text').extract()[0].replace("\n","").strip()
@@ -183,6 +178,38 @@ class QuotesSpider(scrapy.Spider):
             combined_desciption += description        
         
         combined_desciption.strip()
+
+        # Capture description if missing using different tags
+
+        if combined_desciption == "":
+            descriptions = response.css('div.field-name-profile-summary::text').extract()
+
+            combined_desciption = ""
+            for description in descriptions:
+                combined_desciption += description        
+            
+            combined_desciption.strip()
+        
+
+        if combined_desciption =="":
+            descriptions = response.css('div.field-name-profile-summary strong::text').extract()
+
+            combined_desciption = ""
+            for description in descriptions:
+                combined_desciption += description        
+            
+            combined_desciption.strip()
+        
+
+        if combined_desciption == "":
+            descriptions = response.css('div.field-name-profile-summary em::text').extract()
+
+            combined_desciption = ""
+            for description in descriptions:
+                combined_desciption += description        
+            
+            combined_desciption.strip()
+
 
         # company general info (Project size, Hourly rate, employees, founded, languages, timezone)
         company_info = response.css('div.module-list div.list-item span::text').extract()
@@ -386,14 +413,14 @@ class QuotesSpider(scrapy.Spider):
                                 "Payment & Legal: Last Updated": field_payment_last_updated,                                               
                                 })
 
-        # print(len(company_dict))
-        # if len(company_dict) == 4001:
-        #     json_data = json.dumps(company_dict, ensure_ascii=False)
-        #     json_data = json_data.replace('\\"', '')
-        #     filename = 'clutch'
-        #     if not os.path.exists('data'):
-        #         os.makedirs('data')
+        print(len(company_dict))
+        if len(company_dict) == 4001:
+            json_data = json.dumps(company_dict, ensure_ascii=False)
+            json_data = json_data.replace('\\"', '')
+            filename = 'clutch'
+            if not os.path.exists('data'):
+                os.makedirs('data')
             
 
-        #     with open(f'data/{filename}.json', 'w', encoding="utf-8") as out:
-        #         out.write(json_data) 
+            with open(f'data/{filename}.json', 'w', encoding="utf-8") as out:
+                out.write(json_data) 

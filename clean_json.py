@@ -1,4 +1,7 @@
 # clean json file
+# Remove empty lists
+# remove blank spaces and newlines
+
 import json
 import os
 
@@ -10,6 +13,7 @@ for data in all_data:
         data['Project Portfolio']  = None
     if data['Reviews'] == []:
         data['Reviews']  = None
+    data["Description"] = data["Description"].replace("\n","").strip() 
 
 
 json_data = json.dumps(all_data, ensure_ascii=False)
