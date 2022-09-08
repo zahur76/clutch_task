@@ -84,7 +84,7 @@ class QuotesSpider(scrapy.Spider):
 
         # company verification status
         try:
-            verification_status = response.css('div.verification-status-wrapper::text').extract().replace("\n","").strip()
+            verification_status = response.css('div.verification-status-wrapper::text').extract()[1].replace("\n","").strip()           
         except:
             verification_status = None
 
