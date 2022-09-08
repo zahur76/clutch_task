@@ -61,6 +61,10 @@ class QuotesSpider(scrapy.Spider):
             for link in page_links:          
                 send_link = response.urljoin(link)
                 yield scrapy.Request(url=send_link, callback=self.parse_two)
+    
+        # for link in page_links:          
+        #     send_link = response.urljoin(link)
+        #     yield scrapy.Request(url=send_link, callback=self.parse_two)
 
         
     def parse_two(self, response):
@@ -191,6 +195,18 @@ class QuotesSpider(scrapy.Spider):
         else:
             key_clients = key_clients[0].replace("\x80\x99s", "").replace("â\x80\x9c", "").replace(".â\x80\x9d", "").replace("\xa0", "")
 
+        try:
+            project_portfolio = response.css('div.view-gallery-list div.view-content')
+
+            project_portfolio_ = []
+        
+            for project in project_portfolio:
+                temporary_title = project.css("div.p-element div.image-style-one img::attr('alt')").extract()
+                temporary_description = project.css("div.project-description p::text").extract()
+                for i in range(len(temporary_title)):
+                    project_portfolio_.append(({temporary_title[i]: temporary_description[i].replace("\xa0", "")}))
+        except:
+            project_portfolio_ = None
 
         # Review Section
 
@@ -200,7 +216,7 @@ class QuotesSpider(scrapy.Spider):
 
         for review in reviews:
             
-            project = review.css('a.inner_url::text').extract_first().strip()
+            project = review.css('a.inner_url::text').extract_first()
             
             project_category = review.css('div.abs-aligned div.field-item span::text').extract()[0]
 
@@ -255,26 +271,27 @@ class QuotesSpider(scrapy.Spider):
                                     "Reviewer Review Type": reviewer_review_type,
                                     "Reviewer Verified": reviewer_verirfied})
 
-
+        
         company_dict.append({"Company": company_name,
                                 "Company Detail Url": company_detail_url,
-                                "Company_Url": company_url,
-                                "Company_image": company_image,
+                                "Company Url": company_url,
+                                "Company image": company_image,
                                 "Headquarters Address":corrected_address[:-2],
-                                "Phone_number": phone_number,
+                                "Phone number": phone_number,
                                 "Description": combined_desciption,
                                 "Verification Status": verification_status, 
                                 "rating": rating, 
-                                "review_count": review_count,
-                                "Min_Project_Size": company_info[0], 
-                                "Avg_hour_rate": company_info[1].strip(), 
+                                "review count": review_count,
+                                "Min Project Size": company_info[0], 
+                                "Avg hour rate": company_info[1].strip(), 
                                 "Employees": company_info[2].strip(), 
                                 "Founded": company_info[3].strip(), 
                                 "Languages": languages,
                                 "Timezone": timezone,
                                 "Focus": focus_dict[company_name],
-                                "Portfolio": key_clients,
-                                "Review": review_list                                                
+                                "Key Clients": key_clients,
+                                "Project Portfolio": project_portfolio_,
+                                "Reviews": review_list                                                
                                 })
 
         print(len(company_dict))

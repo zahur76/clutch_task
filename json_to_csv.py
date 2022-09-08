@@ -5,6 +5,7 @@ data = json.load(f)
 
 count = 1
 for line in data:
-    if line["Company"] == "Circulo SEO":
-        print(line["Company"])
+    print(count)
+    # if line["Company"] == "Circulo SEO":
+    #     print(line["Company"])
     count += 1
