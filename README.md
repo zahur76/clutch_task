@@ -13,3 +13,7 @@
 * create spider : clutch.py
 
 * run crawler ``` scrapy crawl clutch --nolog ```
+
+## Installation
+
+``` pip install -r requirements.txt```

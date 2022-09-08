@@ -1,3 +1,4 @@
+from http.client import ResponseNotReady
 import scrapy
 
 import json
@@ -7,13 +8,8 @@ import os
 
 start_url = {'url': 'https://clutch.co/agencies/event', 'category': False, 'subcategory': False, 'details': False}
 
-# max_query = 2
-# query_list = []
-
-# property_list = []
 
 # links_required = []
-# count = []
 
 page_links = []
 
@@ -43,29 +39,28 @@ class QuotesSpider(scrapy.Spider):
         """
 
         # limit pages crawled
-        page.append(1)
-
-        if  len(page) <= page_crawled:
-            try:
-                next = response.css("li.page-item.next").get()
-            except:
-                next = None
-            
-            if next:
-                links = response.css("a.company_logotype::attr('href')").extract()
-                for link in links:
-                    page_links.append(link)
-                next_page = response.css("li.page-item.next a.page-link::attr('href')").extract()[0]
-                new_link = response.urljoin(next_page)
-                yield scrapy.Request(url=new_link, callback=self.parse_one, dont_filter=True)
-            else:
-                links = response.css("a.company_logotype::attr('href')").extract()
-                for link in links:
-                    page_links.append(link)
+        
+        try:
+            next = response.css("li.page-item.next").get()
+        except:
+            next = None
+        
+        if next:
+            links = response.css("a.company_logotype::attr('href')").extract()
+            for link in links:
+                page_links.append(link)
+            next_page = response.css("li.page-item.next a.page-link::attr('href')").extract()[0]
+            new_link = response.urljoin(next_page)
+            yield scrapy.Request(url=new_link, callback=self.parse_one)
         else:
-            for link in page_links:                
+            links = response.css("a.company_logotype::attr('href')").extract()
+            for link in links:
+                if link not in page_links:
+                    page_links.append(link)
+        if len(page_links) == 4001:            
+            for link in page_links:          
                 send_link = response.urljoin(link)
-                yield scrapy.Request(url=send_link, callback=self.parse_two, dont_filter=True)
+                yield scrapy.Request(url=send_link, callback=self.parse_two)
 
         
     def parse_two(self, response):
@@ -73,7 +68,9 @@ class QuotesSpider(scrapy.Spider):
         """ 
             Extract company information from details page
         """
-        
+        # company detail page
+        company_detail_url =  response.urljoin(response.url)
+
         #company name
         company_name = response.css('h1.header-company--title a::text').get().replace("\n","").strip()
 
@@ -90,10 +87,16 @@ class QuotesSpider(scrapy.Spider):
             verification_status = None
 
         # company rating
-        rating = response.css('span.rating::text').get().strip()
+        try:
+            rating = response.css('span.rating::text').get().strip()
+        except:
+            rating = None
 
         # company review count
-        review_count = response.css('a.reviews-link span::text').get().strip()
+        try:
+            review_count = response.css('a.reviews-link span::text').get().strip()
+        except:
+            review_count = 0
 
         # company decsription
         descriptions = response.css('div.field-name-profile-summary p::text').extract()
@@ -197,7 +200,7 @@ class QuotesSpider(scrapy.Spider):
 
         for review in reviews:
             
-            project = review.css('a.inner_url::text').extract_first()
+            project = review.css('a.inner_url::text').extract_first().strip()
             
             project_category = review.css('div.abs-aligned div.field-item span::text').extract()[0]
 
@@ -254,9 +257,10 @@ class QuotesSpider(scrapy.Spider):
 
 
         company_dict.append({"Company": company_name,
+                                "Company Detail Url": company_detail_url,
                                 "Company_Url": company_url,
                                 "Company_image": company_image,
-                                "Address":corrected_address[:-2],
+                                "Headquarters Address":corrected_address[:-2],
                                 "Phone_number": phone_number,
                                 "Description": combined_desciption,
                                 "Verification Status": verification_status, 
@@ -272,9 +276,9 @@ class QuotesSpider(scrapy.Spider):
                                 "Portfolio": key_clients,
                                 "Review": review_list                                                
                                 })
-      
 
-        if len(company_dict) == 50:
+        print(len(company_dict))
+        if len(company_dict) == 4001:
             json_data = json.dumps(company_dict, ensure_ascii=False)
             json_data = json_data.replace('\\"', '')
             filename = 'clutch'
