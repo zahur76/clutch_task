@@ -1,11 +1,10 @@
-import json
+import pandas as pd
 
-f = open('./data/clutch.json', encoding='utf-8')
-data = json.load(f)
+df = pd.read_json('./data/clutch.json')
 
-count = 1
-for line in data:
-    print(count)
-    # if line["Company"] == "Circulo SEO":
-    #     print(line["Company"])
-    count += 1
+df.fillna("Nan", inplace = True)
+
+df.to_csv('clutch.csv', index=False)
+
+
+

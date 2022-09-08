@@ -1,6 +1,7 @@
 # Clutch Web Scraping
 
-## Steps
+
+## Scrapy Setup Steps
 
 * install scrapy ``` pip install scrapy ```
 
@@ -12,8 +13,17 @@
 
 * create spider : clutch.py
 
-* run crawler ``` scrapy crawl clutch --nolog ```
 
 ## Installation
 
 ``` pip install -r requirements.txt```
+
+## Scrapy Run Command
+
+* run crawler ``` scrapy crawl clutch --nolog ```
+
+output: json file
+
+## File Conversion
+
+* run ``` pythion json_to_csv ``` to convert json file to csv.

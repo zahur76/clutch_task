@@ -213,7 +213,7 @@ class QuotesSpider(scrapy.Spider):
         review_list = []
 
         reviews = response.css('div.review_data--container')
-
+        
         for review in reviews:
             
             project = review.css('a.inner_url::text').extract_first()
