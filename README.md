@@ -13,7 +13,6 @@
 
 * create spider : clutch.py
 
-
 ## Installation
 
 ``` pip install -r requirements.txt```
@@ -26,4 +25,11 @@ output: json file
 
 ## File Conversion
 
-* run ``` pythion json_to_csv ``` to convert json file to csv.
+* run ``` python clean_json.py ``` to clean json file and remove empty lists
+* run ``` python json_to_csv ``` to convert json file to csv.
+
+## Process
+
+* first run scarpy spider
+* clean json file
+* convert json file to csv
