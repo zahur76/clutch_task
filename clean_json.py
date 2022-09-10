@@ -13,6 +13,11 @@ for data in all_data:
         data["Project Portfolio"] = None
     if data["Reviews"] == []:
         data["Reviews"] = None
+    if data["Reviews"]:
+        for review in data["Reviews"]:
+            review["Project"] = str(review["Project"]).strip()
+            if review["Project"] == None:
+                data["Reviews"].remove(review)
     data["Description"] = data["Description"].replace("\n", "").strip()
 
 

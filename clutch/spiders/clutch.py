@@ -65,6 +65,7 @@ class QuotesSpider(scrapy.Spider):
         except:
             next = None
 
+        # obtain all products details links
         if next:
             links = response.css("a.company_logotype::attr('href')").extract()
             for link in links:
@@ -77,6 +78,8 @@ class QuotesSpider(scrapy.Spider):
             for link in links:
                 if link not in page_links:
                     page_links.append(link)
+
+        # send product details links to parse two
         if len(page_links) == 4004:
             for link in page_links:
                 send_link = response.urljoin(link)
@@ -626,9 +629,11 @@ class QuotesSpider(scrapy.Spider):
             }
         )
 
+        # provide progress by showing companies saved
         print(len(company_dict))
         save()
 
+        # check if reviews pagination links exists
         review_links = response.css(
             'ul.pagination li.page-item a::attr("href")'
         ).extract()
@@ -644,7 +649,7 @@ class QuotesSpider(scrapy.Spider):
     def parse_three(self, response):
 
         """ 
-            Extract all reviews from pagination specific to company
+            Extract all reviews from pagination links specific to company
         """
 
         review_list = []
@@ -752,6 +757,7 @@ class QuotesSpider(scrapy.Spider):
                 }
             )
 
+        # Update company review value list with review review pagination links
         for company in company_dict:
             if response.meta["company_name"] == company["Company"]:
                 company["Reviews"] += review_list
