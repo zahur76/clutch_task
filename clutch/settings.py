@@ -17,8 +17,21 @@ NEWSPIDER_MODULE = "clutch.spiders"
 # USER_AGENT = 'clutch (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
+RETRY_ENABLED = True
+RETRY_TIMES = 1
+
+PLAYWRIGHT_LAUNCH_OPTIONS = {"headless": True}
+
+PLAYWRIGHT_CONTEXT_ARGS = {'ignore_https_errors':True}
+
+RETRY_ENABLED = True
+RETRY_TIMES = 1
+
+HTTPERROR_ALLOWED_CODES = [404,403,406, 408, 500, 503, 504]
+
+# HTTPERROR_ALLOWED_CODES = []
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32
 
@@ -43,22 +56,26 @@ ROBOTSTXT_OBEY = True
 # }
 
 # Enable or disable spider middlewares
-RETRY_TIMES = 10
 # Retry on most error codes since proxies fail for different reasons
-RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
-
-DOWNLOADER_MIDDLEWARES = {
-    "scrapy.downloadermiddlewares.retry.RetryMiddleware": 90,
-    "scrapy_proxies.RandomProxy": 100,
-    "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": 110,
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
 }
+
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
+# DOWNLOADER_MIDDLEWARES = {
+#     "scrapy.downloadermiddlewares.retry.RetryMiddleware": 90,
+#     "scrapy_proxies.RandomProxy": 100,
+#     "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": 110,
+# }
 
 # Proxy list containing entries like
 # http://host1:port
 # http://username:password@host2:port
 # http://host3:port
 # ...
-PROXY_LIST = "./list.txt"
+# PROXY_LIST = "./list.txt"
 
 # Proxy mode
 # 0 = Every requests have different proxy
