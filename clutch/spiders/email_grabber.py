@@ -7,20 +7,17 @@ from email_scraper import scrape_emails
 
 import pymongo
 
-myclient = pymongo.MongoClient(
-    f"mongodb://zara:zara*2009@192.168.100.37:27017/?authMechanism=DEFAULT"
-)
+myclient = pymongo.MongoClient(f"mongodb://localhost:27017")
 
-mydb = myclient["europages"]
+mydb = myclient["mywsba"]
 # mydb = myclient["Hotfrog"]
 # mydb = myclient["lacartes"]
 
-campaign = "Finance EU"
+campaign = "mywsba"
 
 filter_limit = 50000
 
-retry = True
-
+retry = False
 
 concurrent_request = 8
 
@@ -45,10 +42,8 @@ class QuotesSpider(scrapy.Spider):
             )
         else:
             print("Executing Retry urls")
-            company_data = list(
-                mydb[campaign]
-                .find({"email_retry": 0})
-        print(f"{len(company_data)}: links obtained"))
+            company_data = list(mydb[campaign].find({"email_retry": 0}))
+        print(f"{len(company_data)}: links obtained")
         for url in company_data:
             yield scrapy.Request(
                 url["URL"],
