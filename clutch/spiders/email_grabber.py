@@ -7,13 +7,13 @@ from email_scraper import scrape_emails
 
 import pymongo
 
-myclient = pymongo.MongoClient(f"mongodb://localhost:27017")
+myclient = pymongo.MongoClient(f"mongodb://zara:zara*2009@192.168.100.37:27017/?authMechanism=DEFAULT")
 
-mydb = myclient["mywsba"]
+mydb = myclient["europages"]
 # mydb = myclient["Hotfrog"]
 # mydb = myclient["lacartes"]
 
-campaign = "mywsba"
+campaign = "Construction"
 
 filter_limit = 50000
 
